@@ -1,5 +1,5 @@
 #include <Commands/AutoCommands/DriveStraight.h>
-
+#include <Subsystems/RobotDriveWithJoystick.h>
 DriveStraight::DriveStraight() {
 	Requires(robotDrive);
 }
@@ -24,13 +24,14 @@ void DriveStraight::Execute() {
 	case 1:
 		if (!timer.HasPeriodPassed(robotDrive->autoDriveTime)){
 			Drive(-robotDrive->autoDriveSpeed);
-			auxMotors->ElevatorClaw(.5);
+			auxMotors->ElevatorClaw(.4);
 		}
 		else
 			state++;
 		break;
 	default:
 	case 2:
+		auxMotors->ElevatorClaw(0);
 		End();
 	}
 }

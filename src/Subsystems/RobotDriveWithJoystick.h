@@ -13,7 +13,11 @@ public:
 	void driveBot(float left, float right);
 	void advancedDriveBot(float left, float right, float preferred);
 	bool advancedTurnBot(float speed, float preferred);
-	float gyroAngle();
+
+	bool sTurnAuto(float gyro, float speed, bool halfTurn, float deltaSpeed);
+	bool driveAuto(float distance, float speed);
+
+	float gyroAngle(/*bool a*/);
 	void gyroReset();
 	float encoderDistance();
 	void encoderReset();
@@ -45,6 +49,8 @@ private:
 	float talonP;
 	float talonI;
 	float talonD;
+
+	bool swerved;
 
 };
 

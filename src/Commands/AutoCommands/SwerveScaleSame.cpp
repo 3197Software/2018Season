@@ -13,8 +13,8 @@ void SwerveScaleSame::Initialize() {
 	state = 0;
 	finished = false;
 
-	driveOverDistance = CommandBase::prefs->GetFloat("scaleSameDriveOverDistance",
-			0);
+	driveOverDistance = CommandBase::prefs->GetFloat(
+			"scaleSameDriveOverDistance", 0);
 	backupDistance = CommandBase::prefs->GetFloat("scaleBackupDistance", 0);
 
 	eleTime = CommandBase::prefs->GetFloat("scaleEleTime", 0);
@@ -127,6 +127,49 @@ void SwerveScaleSame::Execute() {
 		Drive(l, r);
 	else
 		Drive(r, l);
+//	SmartDashboard::PutNumber("Scale State", state);
+//	bool up = claw->Pickup();
+//	float gyroAngle = robotDrive->gyroAngle();
+//	if (CommandBase::oi->getGamePrefs() == -1) {
+//		gyroAngle *= -1;
+//	}
+//	float eleSpeed = 0;
+//	if (up) {
+//		switch (state) {
+//		case Straight: //drive straight distance using encoders
+//			if(robotDrive->driveAuto(straightDistance, extraSpeed))
+//				IncrementState();
+//			break;
+//		case Swerve:
+//			if (robotDrive->sTurnAuto(swerveAngle, baseSpeed, false,
+//					extraSpeed))
+//				IncrementState();
+//			break;
+//		case RaiseFully:
+//			if(claw->elevatorLoc(true, 1))
+//			IncrementState();
+//			break;
+//		case DriveOverScale:
+//			if (robotDrive->driveAuto(driveOverDistance, extraSpeed)) {
+//				IncrementState();
+//				claw->ResetTimerDrop();
+//			}
+//			break;
+//		case Drop:
+//			if (claw->Drop()) {
+//				IncrementState();
+//			}
+//			break;
+//		case Lower:
+//			if (claw->elevatorLoc(false, .8)) {
+//				IncrementState();
+//			}
+//			break;
+//			End();
+//		}
+//	}
+//	if (up && !(state >= Drop))
+//		auxMotors->Claw(-.4);
 
 }
 

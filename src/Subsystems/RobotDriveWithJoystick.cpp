@@ -14,10 +14,14 @@
 #define TURN_ANGLE_DEADZONE 2
 #define PERCENT_CHANGE_PER_DEGREE .0075
 #define MIN_SPEED .55
-//#define ENCODER_CONVERSION (M_PI * 6 / 84)/4
+#define ENCODER_CONVERSION (M_PI * 6 / 84)/4
 
 #define AUTO_SPEED .5
 #define AUTO_TURN_SPEED .55
+
+int firstRun = 0;
+bool firstPass = false;
+float initGyro;
 
 RobotDriveWithJoystick::RobotDriveWithJoystick() :
 		Subsystem("RobotDriveWithJoystick") {
@@ -39,8 +43,7 @@ RobotDriveWithJoystick::RobotDriveWithJoystick() :
 
 	rDrive->SetSafetyEnabled(false);
 
-//	frontRight->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,
-//			0);
+	frontRight->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0, 0);
 //	frontRight->SetSensorPhase(false); // polarity of the rotation
 
 //	frontRight->ConfigNominalOutputForward(0, kTimeoutMs);
@@ -48,8 +51,7 @@ RobotDriveWithJoystick::RobotDriveWithJoystick() :
 //	frontRight->ConfigPeakOutputForward(1, kTimeoutMs);
 //	frontRight->ConfigPeakOutputReverse(-1, kTimeoutMs);
 
-//	frontLeft->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0,
-//			0);
+	frontLeft->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0, 0);
 //	frontLeft->SetSensorPhase(false); // polarity of the rotation
 
 //	frontLeft->ConfigNominalOutputForward(0, kTimeoutMs);
@@ -92,11 +94,13 @@ void RobotDriveWithJoystick::InitDefaultCommand() {
 //	frontLeft->Config_kI(kPIDLoopIdx, talonI, kTimeoutMs);
 //	frontLeft->Config_kD(kPIDLoopIdx, talonD, kTimeoutMs);
 //	frontLeft->Set(ControlMode::PercentOutput, 0);
-
+	swerved = false;
 }
 
 void RobotDriveWithJoystick::driveBot(float left, float right) {
 	rDrive->TankDrive(left * SPEED_MULTIPLIER, right * SPEED_MULTIPLIER, false);
+	SmartDashboard::PutNumber("L Speed", left);
+	SmartDashboard::PutNumber("R Speed", right);
 	SmartDashboard::PutData("Drive", rDrive);
 }
 
@@ -132,14 +136,17 @@ bool RobotDriveWithJoystick::advancedTurnBot(float speed, float preferred) {
 	return !turn;
 }
 
-float RobotDriveWithJoystick::gyroAngle() {
+float RobotDriveWithJoystick::gyroAngle(/*bool adjusted*/) {
+	bool adjusted = false;
 	float raw = SPIGyro.GetAngle();
 
-	while (raw < -180) {
-		raw += 360;
-	}
-	while (raw > 180) {
-		raw -= 360;
+	if (adjusted) {
+		while (raw < -180) {
+			raw += 360;
+		}
+		while (raw > 180) {
+			raw -= 360;
+		}
 	}
 	SmartDashboard::PutNumber("GyroNumber", raw);
 	SmartDashboard::PutData("Gyro", &SPIGyro);
@@ -151,20 +158,70 @@ void RobotDriveWithJoystick::gyroReset() {
 }
 
 float RobotDriveWithJoystick::encoderDistance() {
-////	float raw = (frontLeft->GetSelectedSensorPosition(kPIDLoopIdx)
-////			+ frontRight->GetSelectedSensorPosition(kPIDLoopIdx)) / 2;
-//	float r = frontRight->GetSelectedSensorPosition(0) * ENCODER_CONVERSION;
-//	float l = frontLeft->GetSelectedSensorPosition(0) * ENCODER_CONVERSION;
-//	SmartDashboard::PutNumber("Right Encoder",  r);
-//	SmartDashboard::PutNumber("Left Encoder",  l);
-//
-	float l, r;
-	l = CommandBase::oi->encodersL();
-	r = CommandBase::oi->encodersR();
+//	float raw = (frontLeft->GetSelectedSensorPosition(kPIDLoopIdx)
+//			+ frontRight->GetSelectedSensorPosition(kPIDLoopIdx)) / 2;
+	float r = frontRight->GetSelectedSensorPosition(0) * ENCODER_CONVERSION;
+	float l = frontLeft->GetSelectedSensorPosition(0) * ENCODER_CONVERSION;
+	SmartDashboard::PutNumber("Right Encoder", r);
+	SmartDashboard::PutNumber("Left Encoder", l);
+
+//	float l, r;
+//	l = CommandBase::oi->encodersL();
+//	r = CommandBase::oi->encodersR();
 	return (l + r) / 2;
 }
 void RobotDriveWithJoystick::encoderReset() {
-//	frontLeft->SetSelectedSensorPosition(0, 0, 0);
-//	frontRight->SetSelectedSensorPosition(0, 0, 0);
+	frontLeft->SetSelectedSensorPosition(0, 0, 0);
+	frontRight->SetSelectedSensorPosition(0, 0, 0);
 	CommandBase::oi->encoderReset();
+}
+
+//Get in the zone, the AUTO ZONE
+
+bool RobotDriveWithJoystick::sTurnAuto(float gyro, float speed, bool halfTurn,
+		float deltaSpeed) {
+	// desired angle , desired speed, return to 0?
+	float l, r;
+	if(firstPass)
+	{
+		firstPass = false;
+		initGyro = gyroAngle();
+	}
+	if (!swerved) {
+		if (gyro - gyroAngle() > -ANGLE_DEADZONE
+				&& gyro - gyroAngle() < ANGLE_DEADZONE) {
+			l = gyro < (gyroAngle() - initGyro) ? speed : speed + deltaSpeed;
+			r = gyro < (gyroAngle() - initGyro) ? speed + deltaSpeed : speed;
+			driveBot(l, r);
+		} else {
+			swerved = true;
+		}
+		return false;
+	} else if (!halfTurn) {
+		if (!(gyroAngle() < ANGLE_DEADZONE && gyroAngle() > -ANGLE_DEADZONE)) {
+			r = gyro < (gyroAngle() - initGyro) ? speed : speed + deltaSpeed;
+			l = gyro < (gyroAngle() - initGyro) ? speed + deltaSpeed : speed;
+			driveBot(l, r);
+			return false;
+		}
+	}
+	swerved = false;
+	return true;
+}
+
+bool withinDesired(float current, float desired, float zone) {
+	return (desired - current) > -zone && (desired - current) < zone;
+}
+
+bool RobotDriveWithJoystick::driveAuto(float distance, float speed) {
+	float currentDist = (frontLeft->GetSelectedSensorPosition(0)
+			* ENCODER_CONVERSION);
+	if (currentDist < distance) {
+		driveBot(speed, speed);
+		return false;
+	} else {
+		firstRun = 0;
+		return true;
+
+	}
 }

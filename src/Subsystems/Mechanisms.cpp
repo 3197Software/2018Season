@@ -1,4 +1,4 @@
-#include "Mechanisms.h"
+	#include "Mechanisms.h"
 
 #include "../Commands/AuxiliaryMotors.h"
 
@@ -16,12 +16,12 @@
 Mechanisms::Mechanisms() :
 		Subsystem("AuxiliaryMotors") {
 
-	winchA = new WPI_TalonSRX(5);
-	winchB = new WPI_TalonSRX(6);
-	claw = new WPI_TalonSRX(7);
-	elevatorWinch = new WPI_TalonSRX(8);
-	elevatorClawA = new WPI_TalonSRX(9);
-	elevatorClawB = new WPI_TalonSRX(10);
+	winchA = new WPI_TalonSRX(5);			//Pulls rope down for climb
+	winchB = new WPI_TalonSRX(6);			//Pulls rope down for climb
+	claw = new WPI_TalonSRX(7);				//Shoots balls
+	elevatorWinch = new WPI_TalonSRX(8);	//Moves climber mech up
+	elevatorClawA = new WPI_TalonSRX(9);	//Moves claw up and down
+	elevatorClawB = new WPI_TalonSRX(10);	//Moves claw up and down
 
 	elevatorClawB->Follow(*elevatorClawA);
 	elevatorClawB->SetInverted(true);

@@ -28,15 +28,15 @@ private:
 public:
 	void RobotInit() {
 		CommandBase::init();
-		positionChooser.AddDefault("Nothing", "N");
-		positionChooser.AddObject("Straight", "S");
+		positionChooser.AddDefault("Straight", "S");
+		positionChooser.AddObject("Nothing", "N");
+		positionChooser.AddObject("Middle", "M");
 		positionChooser.AddObject("Straight Dist", "SD");
 		positionChooser.AddObject("Left", "L");
-		positionChooser.AddObject("Middle", "M");
 		positionChooser.AddObject("Right", "R");
-//		positionChooser.AddObject("Swerve Switch", "Switch");
-//		positionChooser.AddObject("Swerve Scale Same", "Scale Same");
-//		positionChooser.AddObject("Swerve Scale Opposite", "Scale Opposite");
+//		positionChooser.AddObject("Swerve Switch", "SS");
+		positionChooser.AddObject("Swerve Scale Same", "SSS");
+//		positionChooser.AddObject("Swerve Scale Opposite", "SSO`");
 
 		SmartDashboard::PutData("Position", &positionChooser);
 
@@ -56,20 +56,23 @@ public:
 		std::string position = positionChooser.GetSelected();
 		std::string gameData =
 				frc::DriverStation::GetInstance().GetGameSpecificMessage();
-		std::string selected = "nothing";
+		std::string selected = "";
 
 
 		bool sideRight = true;
 		if (position.compare("S") == 0) {
 			selected = "straight";
 			autonomousCommand.reset(new DriveStraight());
+
 		} else if (position.compare("SD") == 0) {
 			selected = "straightDist";
 			autonomousCommand.reset(new DriveStraightDist());
+
 		} else if (position.compare("M") == 0) {
 			selected = "switch";
 			sideRight = gameData.substr(0, 1).compare("R") == 0;
 			autonomousCommand.reset(new SwerveSwitch());
+
 		} else if (position.compare("R") == 0 || position.compare("L") == 0) {
 			sideRight = gameData.substr(1, 1).compare("R") != 0;
 			if (position.compare(gameData.substr(1, 1)) == 0) {
@@ -79,6 +82,11 @@ public:
 				selected = "scaleOpp";
 				autonomousCommand.reset(new SwerveScaleOpp());
 			}
+
+		} else if (position.compare("SSS") == 0) {
+			selected = "SwerveScaleSame";
+			autonomousCommand.reset(new SwerveScaleSame());
+
 		} else {
 			autonomousCommand.reset(new Nothing());
 		}
@@ -97,11 +105,8 @@ public:
 		SmartDashboard::PutString("ScaleSide",  gameData.substr(1, 1));
 		SmartDashboard::PutNumber("GamePrefs", gamePrefs);
 
-
-
-
-
 		if (autonomousCommand.get() != nullptr) {
+//			autonomousCommand->_Initialize();
 			autonomousCommand->Start();
 		}
 	}

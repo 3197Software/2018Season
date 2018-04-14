@@ -5,8 +5,7 @@
 #include "WPILib.h"
 #include "AutoCalls.h"
 
-class SwerveScaleSame: public CommandBase
-{
+class SwerveScaleSame: public CommandBase {
 private:
 	Timer timer;
 	int state;
@@ -37,6 +36,9 @@ private:
 		Backup,
 		Lower
 	};
+//	enum states {
+//		Straight, Swerve, RaiseFully, DriveOverScale, Drop, Lower
+//	};
 
 	AutoCalls* claw = new AutoCalls();
 	void IncrementState();

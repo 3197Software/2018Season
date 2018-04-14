@@ -8,6 +8,7 @@ double "/Preferences/ElevatorClaw D"=0
 double "/Preferences/ElevatorClaw F"=0
 double "/Preferences/ElevatorClaw I"=0
 double "/Preferences/ElevatorClaw P"=0
+double "/Preferences/autoClawSpeed"=0.55
 double "/Preferences/autoDriveDist"=115
 double "/Preferences/autoDriveSpeed"=0.35
 double "/Preferences/autoDriveTime"=4
