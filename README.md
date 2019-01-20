@@ -1,1 +1,1 @@
-"# 2018Season" 
+# 2018Season 
